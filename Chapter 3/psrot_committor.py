@@ -42,34 +42,36 @@ source = miepy.sources.gaussian_beam(polarization=[1,1j], width=wid, power=0.05,
 dat = np.loadtxt('experiment.in').reshape(length,natom,2)  # read the input data obtained in experiment
 dthreshold = 3e-7  # set and tune the d1-d2 threshold for the criterion of reaching the state d1<d2 or the state d1>d2
 mem = 2000 # (tune) time steps taken to reach either the state d1<d2 or the state d1>d2
-count = [0,0] # record both the number of states that reach the state d1<d2 first and the number of states that reach the state d1>d2 first
 committor = [] # initialize the output committor
+samplesize = 200 # set the number of trajectories spawned for computing the committor of each structure
 
 for k in range(0,length):
-    cluster = miepy.sphere_cluster(position=np.append(dat[k,:,:],np.full((natom,1),0.),axis=1).copy(),
+    initial = np.append(dat[k,:,:],np.full((natom,1),0.),axis=1)
+    cluster = miepy.sphere_cluster(position=initial.copy(),
                                    radius=radius,
                                    material=Ag,
                                    source=source,
                                    wavelength=wvl,
                                    medium=water,
                                    lmax=2)
-    bd = stoked.brownian_dynamics(position=initial.copy(), drag=drag, temperature=temperature, dt=dt, inertia=inertia,
-                           interactions=[electrodynamics(cluster),
-                                         stoked.double_layer_sphere(radius, potential, debye=27.6*nm), # set Debye screening length
-                                         stoked.collisions_sphere(radius,1)], constraint=stoked.constrain_position(z=0))
-    trj = bd.run(mem+1).position
-    trj = trj.reshape(natom*(mem+1),3)
-    fl = 0
-    for i in range(0,mem+1):
-        if (fl==0):
-            struct = trj[i].copy()
-            # d1 = ... Calculate d1 of the ith structure.
-            # d2 = ... Calculate d2 of the ith structure.
-            if (d1-d2 > dthreshold):
-                count[0]=count[0]+1
-                l = 1
-            if (d2-d1 > dthreshold):
-                count[1]=count[1]+1
-                l = 1
-    committor.append(1.*count[0]/count[1])
+    count = 0 # record the number of spawned trajectories that reach the state d1<d2 first
+    for j in range(0,samplesize):
+        bd = stoked.brownian_dynamics(position=initial.copy(), drag=drag, temperature=temperature, dt=dt, inertia=inertia,
+                                      interactions=[electrodynamics(cluster),
+                                                    stoked.double_layer_sphere(radius, potential, debye=27.6*nm), # set Debye screening length
+                                                    stoked.collisions_sphere(radius,1)], constraint=stoked.constrain_position(z=0))
+        trj = bd.run(mem+1).position
+        trj = trj.reshape(natom*(mem+1),3)
+        fl = 0
+        for i in range(0,mem+1):
+            if (fl==0):
+                struct = trj[i].copy()
+                # d1 = ... Calculate d1 of the ith frame in the spawned trajectory.
+                # d2 = ... Calculate d2 of the ith frame in the spawned trajectory.
+                if (d1-d2 > dthreshold):
+                    count = count + 1
+                    l = 1
+                if (d2-d1 > dthreshold):
+                    l = 1
+    committor.append(1.*count/samplesize)
 np.savetxt('committor.out',np.asarray(committor))
