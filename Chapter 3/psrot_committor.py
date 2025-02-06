@@ -70,8 +70,8 @@ for k in range(0,length):
                 # d2 = ... Calculate d2 of the ith frame in the spawned trajectory.
                 if (d1-d2 > dthreshold):
                     count = count + 1
-                    l = 1
+                    fl = 1
                 if (d2-d1 > dthreshold):
-                    l = 1
+                    fl = 1
     committor.append(1.*count/samplesize)
 np.savetxt('committor.out',np.asarray(committor))
