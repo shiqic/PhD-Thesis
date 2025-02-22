@@ -1,1 +1,3 @@
-
+In the wPCA_pseudorotation folder, modedecomp.py is a python script that takes in a trajectory and a reference structure and calculates the mean structure, the collective modes, and the corresponding standard deviations. 
+The avgpos.in, direc.out, and stdev.out are the output files corresponding to the mean structure, the collective modes, and the corresponding standard deviations for the 8-particle pseudorotation OM structure.
+The collective mode vectors are the collumns of the direc.out. Note that when using these vectors, one should be careful about the particle labels (permutations). Please refer to the avgpos.in file for detailed (relative) positions for the particles 1-8.
