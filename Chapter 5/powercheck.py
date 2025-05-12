@@ -22,6 +22,8 @@ class electrodynamics(stoked.interactions):
         F = self.cluster.force()
         '''
         for i in range(0,np.size(self.position,axis=0)):
+            x = self.position[i,0]
+            y = self.position[i,1]
             F[i,2] = F[i,2] + U(x,y) # F[i,2] is the z component of the force on the i-th particle. The U(x,y) is the extra electrostatic force profile that depends on x and y.
         '''
         return F
